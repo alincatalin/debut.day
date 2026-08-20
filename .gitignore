@@ -3,6 +3,9 @@ dist/
 # generated types
 .astro/
 
+# local Cloudflare runtime state
+.wrangler/
+
 # dependencies
 node_modules/
 
@@ -16,9 +19,13 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.dev.vars
 
 # macOS-specific files
 .DS_Store
+
+# Keep the repository guide even when a global gitignore excludes README files.
+!README.md
 
 # jetbrains setting folder
 .idea/

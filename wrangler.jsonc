@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "debut-day",
+  "compatibility_date": "2026-08-20",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "debut-day-db",
+      "database_id": "57129652-1101-4704-ac71-13980a5f28b7",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "SUBMISSION_ASSETS",
+      "bucket_name": "debut-day-submissions"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

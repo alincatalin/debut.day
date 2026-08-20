@@ -9,7 +9,11 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "cf:types": "wrangler types",
+    "db:migrate:local": "wrangler d1 migrations apply debut-day-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply debut-day-db --remote",
+    "deploy": "astro build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.2.3",

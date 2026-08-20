@@ -145,15 +145,66 @@ const archive = await listArchive();
       <h2>Tomorrow's debut,<br />in one email.</h2>
       <p>One debut, one reason it matters, one link. Every morning. No digest, no roundup, nothing else.</p>
 
-      <form class="email-form" method="POST" action="/api/subscribe">
+      <form id="newsletterForm" class="email-form" method="POST" action="/api/subscribe">
+        <label class="honeypot" aria-hidden="true">
+          Company website
+          <input type="text" name="companyWebsite" tabindex="-1" autocomplete="off" />
+        </label>
         <input type="email" name="email" placeholder="Email address" aria-label="Email address" required />
         <button class="btn btn-primary" type="submit">Send me tomorrow's debut</button>
       </form>
+
+      <p class="newsletter-status" id="newsletterStatus" role="status" aria-live="polite"></p>
 
       <div class="fineprint">Free. Unsubscribe any time.</div>
     </div>
   </section>
 </Layout>
+
+<script>
+  const newsletterForm = document.getElementById("newsletterForm") as HTMLFormElement | null;
+  const newsletterStatus = document.getElementById("newsletterStatus") as HTMLParagraphElement | null;
+  const newsletterButton = newsletterForm?.querySelector("button[type='submit']") as HTMLButtonElement | null;
+
+  const query = new URLSearchParams(window.location.search);
+  if (newsletterStatus && query.get("subscribed") === "1") {
+    newsletterStatus.textContent = "You're on the list. See you tomorrow.";
+  } else if (newsletterStatus && query.get("subscription") === "error") {
+    newsletterStatus.textContent = "We couldn't save your email. Please try again.";
+  }
+
+  newsletterForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!newsletterStatus || !newsletterButton) return;
+
+    newsletterStatus.textContent = "Saving…";
+    newsletterButton.disabled = true;
+
+    try {
+      const response = await fetch(newsletterForm.action, {
+        method: "POST",
+        body: new FormData(newsletterForm),
+        headers: { accept: "application/json" },
+      });
+      const data = await readJson(response);
+
+      if (!response.ok) throw new Error(data.error || "We couldn't save your email.");
+
+      newsletterStatus.textContent = "You're on the list. See you tomorrow.";
+      newsletterForm.reset();
+    } catch (error) {
+      newsletterStatus.textContent =
+        error instanceof Error ? error.message : "We couldn't save your email. Please try again.";
+    } finally {
+      newsletterButton.disabled = false;
+    }
+  });
+
+  async function readJson(response: Response): Promise<{ error?: string }> {
+    if (!response.headers.get("content-type")?.includes("application/json")) return {};
+    return response.json();
+  }
+</script>
 
 <style>
   .hero { padding: 108px 0 8px; text-align: center; }
@@ -316,5 +367,8 @@ const archive = await listArchive();
     color: var(--ink);
   }
   .email-form input:focus { outline: 2px solid var(--red); outline-offset: 2px; }
+  .email-form button:disabled { cursor: wait; opacity: .65; }
+  .honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  .newsletter-status { min-height: 21px; margin: 14px auto 0 !important; font-size: 14px !important; color: var(--ink-soft) !important; }
   .fineprint { margin-top: 14px; font-size: 13px; color: var(--muted); }
 </style>

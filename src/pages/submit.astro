@@ -20,7 +20,18 @@ import Layout from "../layouts/Layout.astro";
 
   <section class="submit-form-section">
     <div class="wrap">
-      <form id="submitForm" class="submit-form">
+      <form
+        id="submitForm"
+        class="submit-form"
+        method="POST"
+        action="/api/submit"
+        enctype="multipart/form-data"
+      >
+        <label class="honeypot" aria-hidden="true">
+          <span>Company website</span>
+          <input type="text" name="companyWebsite" tabindex="-1" autocomplete="off" />
+        </label>
+
         <label>
           <span>App name</span>
           <input type="text" name="name" required maxlength="60" />
@@ -100,25 +111,42 @@ import Layout from "../layouts/Layout.astro";
 <script>
   const form = document.getElementById("submitForm") as HTMLFormElement;
   const status = document.getElementById("formStatus") as HTMLParagraphElement;
+  const button = form?.querySelector("button[type='submit']") as HTMLButtonElement | null;
+
+  const query = new URLSearchParams(window.location.search);
+  if (status && query.get("submitted") === "1") {
+    status.textContent = "Thanks — we'll be in touch within a week.";
+  } else if (status && query.get("submission") === "error") {
+    status.textContent = "We couldn't save your submission. Please try again.";
+  }
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     status.textContent = "Sending…";
+    if (button) button.disabled = true;
 
     const formData = new FormData(form);
 
     try {
-      const res = await fetch("/api/submit", { method: "POST", body: formData });
-      const data = await res.json();
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        body: formData,
+        headers: { accept: "application/json" },
+      });
+      const data = res.headers.get("content-type")?.includes("application/json")
+        ? await res.json()
+        : {};
 
       if (res.ok) {
         status.textContent = "Thanks — we'll be in touch within a week.";
         form.reset();
       } else {
-        status.textContent = data.error || "Something went wrong. Try again.";
+        status.textContent = data.error || "We couldn't save your submission. Please try again.";
       }
     } catch {
       status.textContent = "Network error — please try again.";
+    } finally {
+      if (button) button.disabled = false;
     }
   });
 </script>
@@ -208,5 +236,7 @@ import Layout from "../layouts/Layout.astro";
   .fieldset-note { margin: -4px 0 4px; font-size: 13.5px; color: var(--muted); font-weight: 400; }
 
   .submit-btn { align-self: flex-start; margin-top: 6px; }
+  .submit-btn:disabled { cursor: wait; opacity: .65; }
+  .honeypot { position: absolute !important; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
   .form-status { margin: 0; font-size: 14px; color: var(--muted); min-height: 20px; }
 </style>
