@@ -1,0 +1,320 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SpotlightCard from "../components/SpotlightCard.astro";
+import { getTodayApp, listArchive } from "../lib/db";
+
+const app = await getTodayApp();
+const archive = await listArchive();
+---
+
+<Layout
+  title="Debut Day — Every new app gets its debut day."
+  description="Every day, one brand-new mobile app gets its debut day — the whole page to itself. Hand-picked from that day's first public releases. Launching soon? Claim your debut day."
+>
+  <section class="hero">
+    <div class="wrap">
+      <h1>Every new app gets its <em>debut day.</em></h1>
+      <p class="hero-sub">
+        One first-time release, the whole page, every day.
+        <a href="/submit">Launching soon? Claim your day ›</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="spotlight" id="today">
+    <div class="wrap">
+      <SpotlightCard app={app} />
+    </div>
+  </section>
+
+  <section class="section washed" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="mono">How we pick</div>
+        <h2>A small ritual, every morning.</h2>
+        <p>
+          We don't rank launches. We don't count upvotes. We go looking for
+          apps worth your minute — and give one of them the day.
+        </p>
+      </div>
+
+      <div class="ritual">
+        <div class="ritual-item">
+          <div class="ritual-time mono">01 · Discover</div>
+          <div class="ritual-title">We go looking</div>
+          <div class="ritual-copy">
+            We hunt for interesting first releases wherever they surface —
+            and makers send us theirs. Some of the best debuts arrive as a
+            quiet "we made this."
+          </div>
+        </div>
+
+        <div class="ritual-item">
+          <div class="ritual-time mono">02 · Choose</div>
+          <div class="ritual-title">We use what we'd keep</div>
+          <div class="ritual-copy">
+            The promising ones go on a real phone — no press kit, no pitch
+            deck. We look for craft: one clear idea, careful details, an app
+            we'd still open next week.
+          </div>
+        </div>
+
+        <div class="ritual-item">
+          <div class="ritual-time mono">03 · Publish</div>
+          <div class="ritual-title">One app gets the day</div>
+          <div class="ritual-copy">
+            The best one gets its debut day: what it does, why it's worth a
+            minute, and where to get it. Then it keeps that date for good.
+          </div>
+        </div>
+      </div>
+
+      <div class="editorial-rule">
+        <strong>The rule:</strong> quality beats quota. If nothing earns the
+        day, we leave it empty rather than recommend filler. Scarcity is the
+        whole point — there are only 365 debut days a year.
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="makers">
+    <div class="wrap">
+      <div class="makers-shell">
+        <div class="makers-grid">
+          <div>
+            <div class="mono makers-eyebrow">For makers</div>
+            <h2>Your launch deserves<br />a <em>day</em>, not an hour<br />in a feed.</h2>
+            <p class="makers-lede">
+              You spent months on version 1.0. On most platforms, it competes
+              with forty other launches and disappears by lunch. Here, your
+              app gets a date of its own — the only thing on the page for a
+              full day, and it keeps that date forever.
+            </p>
+            <a class="btn btn-red" href="/submit">Claim your debut day</a>
+            <p class="makers-note">
+              Free to submit. First public releases only, iPhone or Android.
+              Picked on craft, not clout — no audience required.
+            </p>
+          </div>
+
+          <div class="makers-points">
+            <div class="makers-point">
+              <h3>A date with your name on it</h3>
+              <p>No ranking against anyone. No launch-day army to mobilize. One day, undivided.</p>
+            </div>
+            <div class="makers-point">
+              <h3>Readers who install on day one</h3>
+              <p>People come here to try new apps — which means first downloads, first reviews, and honest feedback exactly when they matter most.</p>
+            </div>
+            <div class="makers-point">
+              <h3>A page that stays up</h3>
+              <p>Your debut lives at debut.day/yourapp for good. Link it from your press kit, your site, your App Store page.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section washed" id="archive">
+    <div class="wrap">
+      <div class="section-head centered">
+        <div class="mono">Archive</div>
+        <h2>A history of first days.</h2>
+        <p>Every app keeps its date. Tap one to revisit what debuted.</p>
+      </div>
+
+      <div class="archive-list">
+        {archive.slice().reverse().map((entry) => (
+          <a class="archive-row" href={`/debuts/${entry.slug}`}>
+            <span class="mono archive-date">
+              {new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            </span>
+            <span class="archive-name">{entry.name}</span>
+            <span class="archive-platform">{entry.platform}</span>
+            <span class="archive-arrow">›</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="newsletter" id="newsletter">
+    <div class="wrap">
+      <div class="mono">One small email</div>
+      <h2>Tomorrow's debut,<br />in one email.</h2>
+      <p>One debut, one reason it matters, one link. Every morning. No digest, no roundup, nothing else.</p>
+
+      <form class="email-form" method="POST" action="/api/subscribe">
+        <input type="email" name="email" placeholder="Email address" aria-label="Email address" required />
+        <button class="btn btn-primary" type="submit">Send me tomorrow's debut</button>
+      </form>
+
+      <div class="fineprint">Free. Unsubscribe any time.</div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero { padding: 108px 0 8px; text-align: center; }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: -.03em;
+    line-height: 1.08;
+    margin: 0 0 10px;
+  }
+  .hero h1 :global(em) { font-style: normal; color: var(--red); }
+
+  .hero-sub {
+    max-width: 560px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: 15.5px;
+  }
+  .hero-sub a { color: var(--red-ink); font-weight: 600; }
+  .hero-sub a:hover { color: var(--red); }
+
+  .spotlight { padding: 34px 0 92px; }
+
+  .section { padding: 88px 0; }
+  .section.washed { background: var(--wash); border-block: 1px solid var(--line); }
+
+  .section-head { max-width: 620px; margin-bottom: 52px; }
+  .section-head.centered { margin-inline: auto; text-align: center; }
+  .section-head h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(30px, 4.4vw, 44px);
+    letter-spacing: -.03em;
+    line-height: 1.08;
+    margin: 12px 0 14px;
+  }
+  .section-head p { color: var(--ink-soft); margin: 0; font-size: 18px; }
+
+  .ritual { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .ritual-item {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 26px 26px 28px;
+    box-shadow: var(--shadow-soft);
+  }
+  .ritual-time { color: var(--red-ink); margin-bottom: 14px; }
+  .ritual-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -.015em;
+    margin-bottom: 8px;
+  }
+  .ritual-copy { font-size: 15.5px; color: var(--ink-soft); }
+
+  .editorial-rule {
+    margin-top: 36px;
+    padding: 18px 22px;
+    border: 1.5px dashed var(--line-strong);
+    border-radius: 14px;
+    font-size: 16px;
+    color: var(--ink-soft);
+    max-width: 680px;
+  }
+  .editorial-rule strong { color: var(--ink); }
+
+  @media (max-width: 820px) {
+    .ritual { grid-template-columns: 1fr; }
+  }
+
+  .makers-shell {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 28px;
+    padding: clamp(36px, 6vw, 68px);
+    position: relative;
+    overflow: hidden;
+  }
+  .makers-shell::after {
+    content: "";
+    position: absolute;
+    top: -140px; right: -120px;
+    width: 380px; height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(226, 59, 46, .32), transparent 68%);
+    pointer-events: none;
+  }
+  .makers-grid {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: clamp(30px, 5vw, 64px);
+    position: relative;
+    z-index: 1;
+  }
+  .makers-eyebrow { color: rgba(251, 250, 246, .6); }
+  .makers-shell h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(30px, 4.6vw, 46px);
+    letter-spacing: -.03em;
+    line-height: 1.06;
+    margin: 12px 0 16px;
+  }
+  .makers-shell h2 :global(em) { font-style: normal; color: var(--red); }
+  .makers-lede { color: rgba(251, 250, 246, .78); font-size: 17.5px; margin: 0 0 30px; max-width: 46ch; }
+  .makers-note { color: rgba(251, 250, 246, .55); font-size: 13.5px; margin-top: 16px; }
+  .makers-points { display: flex; flex-direction: column; gap: 22px; }
+  .makers-point { border-top: 1px solid rgba(251, 250, 246, .16); padding-top: 18px; }
+  .makers-point h3 { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -.01em; margin: 0 0 6px; }
+  .makers-point p { margin: 0; font-size: 15.5px; color: rgba(251, 250, 246, .72); }
+
+  @media (max-width: 860px) {
+    .makers-grid { grid-template-columns: 1fr; }
+  }
+
+  .archive-list {
+    max-width: 640px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+  .archive-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 15px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .archive-row:last-child { border-bottom: 0; }
+  .archive-row:hover { background: var(--wash); }
+  .archive-date { width: 68px; flex: none; }
+  .archive-name { font-family: var(--display); font-weight: 700; font-size: 16px; flex: 1; }
+  .archive-platform { color: var(--muted); font-size: 13.5px; }
+  .archive-arrow { color: var(--red-ink); }
+
+  .newsletter { text-align: center; padding: 96px 0 104px; }
+  .newsletter h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(30px, 4.6vw, 46px);
+    letter-spacing: -.03em;
+    line-height: 1.06;
+    margin: 12px 0 14px;
+  }
+  .newsletter p { color: var(--ink-soft); max-width: 440px; margin: 0 auto 28px; font-size: 17.5px; }
+  .email-form { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; max-width: 460px; margin: 0 auto; }
+  .email-form input {
+    flex: 1 1 240px;
+    padding: 13px 18px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line-strong);
+    background: var(--card);
+    font-size: 15.5px;
+    color: var(--ink);
+  }
+  .email-form input:focus { outline: 2px solid var(--red); outline-offset: 2px; }
+  .fineprint { margin-top: 14px; font-size: 13px; color: var(--muted); }
+</style>

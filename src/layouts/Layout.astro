@@ -1,0 +1,161 @@
+---
+import "../styles/tokens.css";
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath?: string;
+}
+
+const { title, description, canonicalPath = "/" } = Astro.props;
+const canonical = new URL(canonicalPath, "https://debut.day/");
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FBFAF6" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="topbar">
+      <nav class="nav wrap" aria-label="Main">
+        <a class="brand" href="/"><span class="brand-dot" aria-hidden="true"></span>Debut Day</a>
+        <div class="nav-links">
+          <a href="/#today">Today</a>
+          <a href="/#how">How we pick</a>
+          <a href="/#archive">Archive</a>
+          <a class="nav-cta" href="/submit">Claim your day</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer>
+      <div class="wrap footer-row">
+        <span>© 2026 Debut Day · debut.day</span>
+        <span><a href="/submit">Claim your day</a> · <a href="/#newsletter">Newsletter</a></span>
+      </div>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      function showToast(message: string) {
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout((window as any).__toast);
+        (window as any).__toast = setTimeout(() => toast.classList.remove("show"), 2100);
+      }
+      (window as any).showToast = showToast;
+    </script>
+  </body>
+</html>
+
+<style>
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    background: rgba(251, 250, 246, .82);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -.02em;
+    white-space: nowrap;
+  }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); flex: none; }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .nav-links a:hover { color: var(--ink); }
+
+  .nav-cta {
+    padding: 8px 16px;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    color: var(--ink);
+    transition: background .18s ease, color .18s ease;
+  }
+  .nav-cta:hover { background: var(--ink); color: var(--paper); }
+
+  @media (max-width: 700px) {
+    .nav-links a:not(.nav-cta) { display: none; }
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 26px 0 30px;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .footer-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+  }
+  .footer-row a { color: var(--ink-soft); font-weight: 500; }
+  .footer-row a:hover { color: var(--ink); }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    transform: translate(-50%, 16px);
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 14px;
+    padding: 11px 18px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    z-index: 90;
+    max-width: calc(100% - 40px);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>

@@ -1,0 +1,212 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="Claim your debut day — Debut Day"
+  description="Submit your app for a debut day: the whole page, for a full day, then a permanent home in the archive."
+>
+  <section class="submit-hero">
+    <div class="wrap">
+      <div class="mono">For makers</div>
+      <h1>Claim your debut day.</h1>
+      <p>
+        Free to submit. First public releases only, iPhone or Android.
+        We read every submission — you'll hear back either way, usually
+        within a week.
+      </p>
+    </div>
+  </section>
+
+  <section class="submit-form-section">
+    <div class="wrap">
+      <form id="submitForm" class="submit-form">
+        <label>
+          <span>App name</span>
+          <input type="text" name="name" required maxlength="60" />
+        </label>
+
+        <label>
+          <span>One-line tagline</span>
+          <input type="text" name="tagline" required maxlength="90" placeholder="What it does, in one short sentence" />
+        </label>
+
+        <label>
+          <span>Description</span>
+          <textarea name="description" required maxlength="1200" rows="5" placeholder="A couple of paragraphs — what it does, who it's for, what makes it worth a minute."></textarea>
+        </label>
+
+        <div class="grid-2">
+          <label>
+            <span>Platform</span>
+            <select name="platform" required>
+              <option value="">Choose one</option>
+              <option value="ios">iPhone only</option>
+              <option value="android">Android only</option>
+              <option value="both">iPhone + Android</option>
+            </select>
+          </label>
+
+          <label>
+            <span>First public release date</span>
+            <input type="date" name="releaseDate" required />
+          </label>
+        </div>
+
+        <div class="grid-2">
+          <label>
+            <span>App Store URL <em>(if applicable)</em></span>
+            <input type="url" name="storeUrlIos" placeholder="https://apps.apple.com/…" />
+          </label>
+          <label>
+            <span>Play Store URL <em>(if applicable)</em></span>
+            <input type="url" name="storeUrlAndroid" placeholder="https://play.google.com/…" />
+          </label>
+        </div>
+
+        <label>
+          <span>App icon <em>(PNG or WebP, square)</em></span>
+          <input type="file" name="icon" accept="image/png,image/webp" required />
+        </label>
+
+        <label>
+          <span>Screenshots <em>(up to 5, PNG or WebP)</em></span>
+          <input type="file" name="screenshots" accept="image/png,image/webp" multiple />
+        </label>
+
+        <fieldset>
+          <legend>About you <span class="optional-tag">optional</span></legend>
+          <p class="fieldset-note">
+            A few words about who made this — used only if you'd like a short
+            interview alongside your debut. Leave blank to skip.
+          </p>
+          <label>
+            <span>Your name</span>
+            <input type="text" name="makerName" maxlength="60" />
+          </label>
+          <label>
+            <span>Contact email</span>
+            <input type="email" name="makerEmail" required />
+          </label>
+        </fieldset>
+
+        <button class="btn btn-red submit-btn" type="submit">Submit for review</button>
+        <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const form = document.getElementById("submitForm") as HTMLFormElement;
+  const status = document.getElementById("formStatus") as HTMLParagraphElement;
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    status.textContent = "Sending…";
+
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch("/api/submit", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (res.ok) {
+        status.textContent = "Thanks — we'll be in touch within a week.";
+        form.reset();
+      } else {
+        status.textContent = data.error || "Something went wrong. Try again.";
+      }
+    } catch {
+      status.textContent = "Network error — please try again.";
+    }
+  });
+</script>
+
+<style>
+  .submit-hero { padding: 64px 0 24px; max-width: 620px; margin: 0 auto; }
+  .submit-hero h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(32px, 5vw, 44px);
+    letter-spacing: -.03em;
+    margin: 12px 0 14px;
+  }
+  .submit-hero p { color: var(--ink-soft); font-size: 17px; margin: 0; }
+
+  .submit-form-section { padding: 24px 0 100px; }
+
+  .submit-form {
+    max-width: 620px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: var(--shadow-soft);
+    padding: 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .submit-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .submit-form label em { font-weight: 400; font-style: normal; color: var(--muted); }
+
+  .submit-form input,
+  .submit-form select,
+  .submit-form textarea {
+    border: 1.5px solid var(--line-strong);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 15.5px;
+    color: var(--ink);
+    background: var(--paper);
+    font-family: var(--body);
+  }
+  .submit-form input:focus,
+  .submit-form select:focus,
+  .submit-form textarea:focus {
+    outline: 2px solid var(--red);
+    outline-offset: 1px;
+  }
+  .submit-form textarea { resize: vertical; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .submit-form fieldset {
+    border: 1px dashed var(--line-strong);
+    border-radius: 12px;
+    padding: 18px 18px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .submit-form legend {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 0 6px;
+  }
+  .optional-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    margin-left: 6px;
+  }
+  .fieldset-note { margin: -4px 0 4px; font-size: 13.5px; color: var(--muted); font-weight: 400; }
+
+  .submit-btn { align-self: flex-start; margin-top: 6px; }
+  .form-status { margin: 0; font-size: 14px; color: var(--muted); min-height: 20px; }
+</style>

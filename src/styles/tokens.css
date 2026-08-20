@@ -1,0 +1,84 @@
+:root {
+  --paper: #FBFAF6;
+  --wash: #F2F0E9;
+  --card: #FFFFFF;
+  --ink: #1B1C1F;
+  --ink-soft: #3A3C41;
+  --muted: #70737B;
+  --line: rgba(27, 28, 31, .13);
+  --line-strong: rgba(27, 28, 31, .22);
+  --red: #E23B2E;
+  --red-ink: #B92A20;
+  --red-wash: rgba(226, 59, 46, .07);
+  --shadow: 0 24px 60px rgba(27, 28, 31, .10);
+  --shadow-soft: 0 10px 28px rgba(27, 28, 31, .07);
+  --max: 1060px;
+  --display: "Bricolage Grotesque", "Helvetica Neue", sans-serif;
+  --body: "Instrument Sans", -apple-system, sans-serif;
+  --mono: "Spline Sans Mono", "SF Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.wrap { width: min(calc(100% - 44px), var(--max)); margin: 0 auto; }
+
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15.5px;
+  border: 1.5px solid transparent;
+  transition: transform .15s ease, background .18s ease, color .18s ease, border-color .18s ease;
+}
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--ink); color: var(--paper); }
+.btn-primary:hover { background: #000; }
+.btn-ghost { border-color: var(--line-strong); color: var(--ink); background: transparent; }
+.btn-ghost:hover { border-color: var(--ink); }
+.btn-red { background: var(--red); color: #fff; }
+.btn-red:hover { background: var(--red-ink); }
+
+.text-link {
+  background: none; border: 0; padding: 0;
+  font-weight: 600; font-size: 15px; color: var(--red-ink);
+}
+.text-link:hover { color: var(--red); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; }
+}

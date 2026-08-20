@@ -1,0 +1,167 @@
+---
+import type { AppScreen } from "../data/apps";
+
+interface Props {
+  screens: AppScreen[];
+  size?: "md" | "lg";
+  showCaption?: boolean;
+}
+
+const { screens, size = "md", showCaption = false } = Astro.props;
+const uid = Math.random().toString(36).slice(2, 9);
+---
+
+<div class:list={["visual-pane", size]} data-carousel={uid}>
+  <button class="carousel-arrow prev" type="button" aria-label="Previous screen" data-dir="-1">‹</button>
+  <div class="phone">
+    <div class="phone-screen">
+      {screens.map((s, i) => (
+        <div class="phone-slide" class:list={{ active: i === 0 }} data-slide={i}>
+          <div class="screen-icon" set:html={s.icon} />
+          <div class="screen-name">{s.title}</div>
+          <div class="screen-sub" set:html={s.sub} />
+        </div>
+      ))}
+    </div>
+  </div>
+  <button class="carousel-arrow next" type="button" aria-label="Next screen" data-dir="1">›</button>
+</div>
+<div class="carousel-dots" role="tablist" aria-label="App screens" data-dots={uid}></div>
+{showCaption && <div class="carousel-caption" data-caption={uid}>{screens[0]?.caption}</div>}
+
+<script define:vars={{ uid, captions: screens.map((s) => s.caption), count: screens.length, showCaption }}>
+  (function () {
+    const stage = document.querySelector(`[data-carousel="${uid}"]`);
+    const dotsWrap = document.querySelector(`[data-dots="${uid}"]`);
+    const caption = document.querySelector(`[data-caption="${uid}"]`);
+    if (!stage || !dotsWrap) return;
+
+    const slides = Array.from(stage.querySelectorAll(".phone-slide"));
+    let active = 0;
+
+    for (let i = 0; i < count; i++) {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.setAttribute("role", "tab");
+      dot.setAttribute("aria-label", `Screen ${i + 1}`);
+      dot.addEventListener("click", () => setSlide(i));
+      dotsWrap.appendChild(dot);
+    }
+
+    function setSlide(i) {
+      active = (i + count) % count;
+      slides.forEach((el, idx) => el.classList.toggle("active", idx === active));
+      Array.from(dotsWrap.children).forEach((d, idx) => d.classList.toggle("active", idx === active));
+      if (showCaption && caption) caption.textContent = captions[active] || "";
+    }
+
+    stage.querySelectorAll(".carousel-arrow").forEach((btn) => {
+      btn.addEventListener("click", () => setSlide(active + Number(btn.dataset.dir)));
+    });
+
+    setSlide(0);
+
+    let autoplay = setInterval(() => setSlide(active + 1), 4200);
+    stage.addEventListener("mouseenter", () => clearInterval(autoplay));
+  })();
+</script>
+
+<style>
+  .visual-pane {
+    position: relative;
+    background: radial-gradient(circle at 50% 24%, var(--red-wash), transparent 68%), var(--wash);
+    display: grid;
+    place-items: center;
+  }
+
+  .phone {
+    width: 272px;
+    aspect-ratio: 9 / 19;
+    border-radius: 46px;
+    border: 1px solid var(--line-strong);
+    background: var(--ink);
+    padding: 10px;
+    box-shadow: 0 30px 50px rgba(27, 28, 31, .18);
+    position: relative;
+    z-index: 2;
+  }
+
+  .visual-pane.md .phone { width: 218px; }
+
+  .phone-screen {
+    width: 100%; height: 100%;
+    border-radius: 38px;
+    background: linear-gradient(180deg, #FDFDFB 0%, #F4F2EC 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .phone-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+    opacity: 0;
+    position: absolute;
+    inset: 20px;
+    transition: opacity .35s ease;
+    pointer-events: none;
+  }
+  .phone-slide.active { opacity: 1; pointer-events: auto; }
+
+  .screen-icon {
+    width: 62px; height: 62px;
+    border-radius: 15px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 30px;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+
+  .screen-name { font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: -.02em; }
+  .screen-sub { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  .carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: var(--card);
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    box-shadow: var(--shadow-soft);
+  }
+  .carousel-arrow:hover { background: var(--wash); }
+  .carousel-arrow.prev { left: 10px; }
+  .carousel-arrow.next { right: 10px; }
+  .visual-pane.lg .carousel-arrow.prev { left: 14px; }
+  .visual-pane.lg .carousel-arrow.next { right: 14px; }
+
+  .carousel-dots {
+    display: flex; justify-content: center; gap: 7px;
+    margin-top: 18px;
+  }
+  .carousel-dots :global(button) {
+    width: 6px; height: 6px; border-radius: 50%; border: 0;
+    background: var(--line-strong); padding: 0;
+  }
+  .carousel-dots :global(button.active) { background: var(--ink); width: 16px; border-radius: 4px; }
+
+  .carousel-caption {
+    text-align: center;
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+</style>
