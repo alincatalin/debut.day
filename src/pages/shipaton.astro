@@ -1,0 +1,113 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="Shipping for Shipaton? Own a day. — Debut Day"
+  description="Debut Day features one new mobile app each day. Submit your Shipaton app for a chance to own one."
+  canonicalPath="/shipaton"
+>
+  <section class="campaign-hero">
+    <div class="wrap campaign-wrap">
+      <div class="mono">Shipaton 2026 · August 1–September 30</div>
+      <h1>Shipping for Shipaton?<br /><em>Own a day.</em></h1>
+      <p class="campaign-lede">
+        Debut Day features one new mobile app each day. Submit your Shipaton
+        app for a chance to own one.
+      </p>
+
+      <div class="campaign-rule" aria-label="How Debut Day works">
+        <p>No leaderboard.</p>
+        <p>No upvotes.</p>
+        <p>No fighting 100 other launches.</p>
+        <strong>One app. One entire day.</strong>
+      </div>
+
+      <div class="availability">
+        <span class="availability-dot" aria-hidden="true"></span>
+        <span>One Shipaton app. Every day until September 30.</span>
+      </div>
+
+      <a class="btn btn-red campaign-cta" href="/submit?campaign=shipaton">
+        Submit your Shipaton app <span aria-hidden="true">→</span>
+      </a>
+      <p class="fineprint">Free to submit. First public releases only, iPhone or Android.</p>
+    </div>
+  </section>
+
+  <section class="campaign-footer">
+    <div class="wrap">
+      <p>Not affiliated with RevenueCat or Shipaton. Just made for people shipping.</p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .campaign-hero {
+    min-height: calc(100vh - 170px);
+    display: grid;
+    place-items: center;
+    padding: 86px 0 74px;
+    background:
+      radial-gradient(circle at 18% 20%, var(--red-wash), transparent 34%),
+      radial-gradient(circle at 84% 76%, rgba(226, 59, 46, .05), transparent 30%);
+  }
+  .campaign-wrap { max-width: 780px; text-align: center; }
+  h1 {
+    margin: 18px 0 24px;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(48px, 8vw, 82px);
+    line-height: .98;
+    letter-spacing: -.055em;
+  }
+  h1 em { color: var(--red); font-style: normal; }
+  .campaign-lede {
+    max-width: 610px;
+    margin: 0 auto 36px;
+    color: var(--ink-soft);
+    font-size: clamp(18px, 2.5vw, 22px);
+    line-height: 1.55;
+  }
+  .campaign-rule {
+    max-width: 570px;
+    margin: 0 auto 28px;
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .8);
+    box-shadow: var(--shadow-soft);
+  }
+  .campaign-rule p { margin: 0; color: var(--muted); }
+  .campaign-rule strong {
+    display: block;
+    margin-top: 12px;
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 24px;
+  }
+  .availability {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-bottom: 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--red-ink);
+  }
+  .availability-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+  .campaign-cta { font-size: 17px; padding: 15px 28px; }
+  .fineprint { margin: 14px 0 0; color: var(--muted); font-size: 13px; }
+  .campaign-footer { border-top: 1px solid var(--line); padding: 26px 0; text-align: center; }
+  .campaign-footer p { margin: 0; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 600px) {
+    .campaign-hero { min-height: auto; padding: 64px 0 58px; }
+    .campaign-rule { padding: 23px 18px; }
+    .availability { align-items: flex-start; line-height: 1.5; }
+    .availability-dot { margin-top: 5px; flex: none; }
+  }
+</style>

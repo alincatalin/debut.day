@@ -37,7 +37,8 @@ bindings in `wrangler.jsonc`.
 The private intake workflow is intentionally separate from the public site.
 
 - `newsletter_subscribers` stores newsletter consent and subscription state.
-- `app_submissions` stores raw submissions for editorial review.
+- `app_submissions` stores raw submissions for editorial review, including an
+  optional campaign source such as `shipaton`.
 - `submission_assets` maps private R2 objects to a submission.
 - `published_apps` stores edited public showcase records.
 - `published_app_screens` stores ordered public screenshot content.
@@ -48,8 +49,13 @@ its `source_submission_id`, edit the public copy, and move it from `draft` or
 `scheduled` to `published`.
 
 Submitted images live in the private `debut-day-submissions` R2 bucket. Do not
-enable public access on this bucket. Copy selected assets to a public delivery
-path only after accepting and editing a submission.
+enable public access on this bucket. Accepted records may reference approved R2
+keys from `published_apps` and `published_app_screens`; the Worker serves only
+keys attached to a scheduled, published, or archived app.
+
+Public app pages use `debut.day/{slug}`. The legacy `/debuts/{slug}` route is a
+permanent redirect. Shipaton submissions are tagged by the `/shipaton` intake
+path and receive a downloadable, date-aware social card after scheduling.
 
 ## Inspecting production data
 
@@ -57,7 +63,7 @@ Use the Cloudflare D1 dashboard or Wrangler:
 
 ```bash
 npx wrangler d1 execute debut-day-db --remote \
-  --command "SELECT id, name, status, submitted_at FROM app_submissions ORDER BY submitted_at DESC"
+  --command "SELECT id, name, campaign_source, status, submitted_at FROM app_submissions ORDER BY submitted_at DESC"
 
 npx wrangler d1 execute debut-day-db --remote \
   --command "SELECT email, status, consented_at FROM newsletter_subscribers ORDER BY created_at DESC"
@@ -86,7 +92,10 @@ src/
   pages/
     api/submit.ts         validated D1 + private R2 intake
     api/subscribe.ts      newsletter consent persistence
-    debuts/[slug].astro   public app detail page
+    [slug].astro          canonical public app detail page
+    shipaton.astro        temporary Shipaton campaign landing page
+    api/cards/            generated PNG sharing cards
+    media/apps/           approved R2 asset delivery
     index.astro            homepage and newsletter form
     submit.astro           maker submission form
 migrations/               versioned D1 schema

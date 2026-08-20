@@ -5,25 +5,42 @@ import { getTodayApp, listArchive } from "../lib/db";
 
 const app = await getTodayApp();
 const archive = await listArchive();
+const showShipatonStrip = Date.now() < Date.parse("2026-10-01T00:00:00Z");
 ---
 
 <Layout
   title="Debut Day — Every new app gets its debut day."
-  description="Every day, one brand-new mobile app gets its debut day — the whole page to itself. Hand-picked from that day's first public releases. Launching soon? Claim your debut day."
+  description="Every day, one brand-new mobile app gets its debut day — the whole page to itself. Hand-picked from that day's first public releases. Launching soon? Submit your app."
 >
+  {showShipatonStrip && (
+    <aside class="shipaton-strip" aria-label="Shipaton submissions">
+      <a class="wrap" href="/shipaton">
+        <span><strong>Building for Shipaton?</strong> Give your app a launch day of its own.</span>
+        <span class="strip-cta">Claim a Shipaton Debut Day <span aria-hidden="true">→</span></span>
+      </a>
+    </aside>
+  )}
+
   <section class="hero">
     <div class="wrap">
       <h1>Every new app gets its <em>debut day.</em></h1>
       <p class="hero-sub">
         One first-time release, the whole page, every day.
-        <a href="/submit">Launching soon? Claim your day ›</a>
+        <a href="/submit">Launching soon? Submit your app ›</a>
       </p>
     </div>
   </section>
 
   <section class="spotlight" id="today">
     <div class="wrap">
-      <SpotlightCard app={app} />
+      {app ? <SpotlightCard app={app} /> : (
+        <article class="empty-day">
+          <div class="mono">Today's debut</div>
+          <h2>The day is still open.</h2>
+          <p>Quality beats quota. We leave a day empty rather than recommend filler.</p>
+          <a class="btn btn-red" href="/submit">Submit your app</a>
+        </article>
+      )}
     </div>
   </section>
 
@@ -90,7 +107,7 @@ const archive = await listArchive();
               app gets a date of its own — the only thing on the page for a
               full day, and it keeps that date forever.
             </p>
-            <a class="btn btn-red" href="/submit">Claim your debut day</a>
+            <a class="btn btn-red" href="/submit">Submit for a Debut Day</a>
             <p class="makers-note">
               Free to submit. First public releases only, iPhone or Android.
               Picked on craft, not clout — no audience required.
@@ -125,8 +142,8 @@ const archive = await listArchive();
       </div>
 
       <div class="archive-list">
-        {archive.slice().reverse().map((entry) => (
-          <a class="archive-row" href={`/debuts/${entry.slug}`}>
+        {archive.map((entry) => (
+          <a class="archive-row" href={`/${entry.slug}`}>
             <span class="mono archive-date">
               {new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </span>
@@ -207,6 +224,40 @@ const archive = await listArchive();
 </script>
 
 <style>
+  .shipaton-strip {
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 14px;
+  }
+  .shipaton-strip a {
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    text-align: center;
+  }
+  .strip-cta { color: #ff8a7f; font-weight: 600; white-space: nowrap; }
+  .shipaton-strip a:hover .strip-cta { color: #fff; }
+
+  .empty-day {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 70px 40px;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 26px;
+    box-shadow: var(--shadow);
+  }
+  .empty-day h2 { margin: 10px 0; font-family: var(--display); font-size: 36px; }
+  .empty-day p { margin: 0 auto 24px; color: var(--ink-soft); }
+
+  @media (max-width: 700px) {
+    .shipaton-strip a { padding: 10px 0; flex-direction: column; gap: 2px; line-height: 1.35; }
+    .empty-day { padding: 48px 24px; }
+  }
+
   .hero { padding: 108px 0 8px; text-align: center; }
 
   .hero h1 {

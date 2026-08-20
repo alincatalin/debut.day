@@ -17,9 +17,15 @@ const uid = Math.random().toString(36).slice(2, 9);
     <div class="phone-screen">
       {screens.map((s, i) => (
         <div class="phone-slide" class:list={{ active: i === 0 }} data-slide={i}>
-          <div class="screen-icon" set:html={s.icon} />
-          <div class="screen-name">{s.title}</div>
-          <div class="screen-sub" set:html={s.sub} />
+          {s.imageUrl ? (
+            <img class="screen-image" src={s.imageUrl} alt={`${s.title} app screen`} loading={i === 0 ? "eager" : "lazy"} />
+          ) : (
+            <>
+              <div class="screen-icon" set:html={s.icon} />
+              <div class="screen-name">{s.title}</div>
+              <div class="screen-sub" set:html={s.sub} />
+            </>
+          )}
         </div>
       ))}
     </div>
@@ -123,6 +129,8 @@ const uid = Math.random().toString(36).slice(2, 9);
     place-items: center;
     flex: none;
   }
+  .screen-image { width: 100%; height: 100%; object-fit: cover; }
+  .phone-slide:has(.screen-image) { inset: 0; }
 
   .screen-name { font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: -.02em; }
   .screen-sub { font-size: 12.5px; color: var(--muted); line-height: 1.5; }

@@ -34,6 +34,7 @@ class FormError extends Error {
 
 export const POST: APIRoute = async ({ request }) => {
   const uploadedKeys: string[] = [];
+  let campaignSource: "shipaton" | null = null;
 
   try {
     const declaredLength = Number(request.headers.get("content-length") || 0);
@@ -43,9 +44,10 @@ export const POST: APIRoute = async ({ request }) => {
 
     const formData = await request.formData();
     const honeypot = text(formData, "companyWebsite");
+    campaignSource = text(formData, "campaignSource") === "shipaton" ? "shipaton" : null;
 
     // Silently accept bot submissions without writing them.
-    if (honeypot) return success(request, crypto.randomUUID());
+    if (honeypot) return success(request, crypto.randomUUID(), campaignSource);
 
     const name = requiredText(formData, "name", "App name", FIELD_LIMITS.name);
     const tagline = requiredText(formData, "tagline", "Tagline", FIELD_LIMITS.tagline);
@@ -137,8 +139,8 @@ export const POST: APIRoute = async ({ request }) => {
         `INSERT INTO app_submissions
           (id, status, name, tagline, description, platform, first_release_date,
            store_url_ios, store_url_android, maker_name, maker_email,
-           submitted_at, updated_at)
-         VALUES (?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           campaign_source, submitted_at, updated_at)
+         VALUES (?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(
         submissionId,
         name,
@@ -150,6 +152,7 @@ export const POST: APIRoute = async ({ request }) => {
         storeUrlAndroid || null,
         makerName || null,
         makerEmail,
+        campaignSource,
         submittedAt,
         submittedAt,
       ),
@@ -173,16 +176,16 @@ export const POST: APIRoute = async ({ request }) => {
 
     await env.DB.batch(statements);
 
-    return success(request, submissionId);
+    return success(request, submissionId, campaignSource);
   } catch (error) {
     if (uploadedKeys.length > 0) {
       await Promise.allSettled(uploadedKeys.map((key) => env.SUBMISSION_ASSETS.delete(key)));
     }
 
-    if (error instanceof FormError) return failure(request, error.message, error.status);
+    if (error instanceof FormError) return failure(request, error.message, error.status, campaignSource);
 
     console.error("App submission failed:", error);
-    return failure(request, "We couldn't save your submission. Please try again.", 500);
+    return failure(request, "We couldn't save your submission. Please try again.", 500, campaignSource);
   }
 };
 
@@ -260,15 +263,19 @@ function wantsJson(request: Request) {
   return request.headers.get("accept")?.includes("application/json") ?? false;
 }
 
-function success(request: Request, submissionId: string) {
+function success(request: Request, submissionId: string, campaignSource: string | null) {
   if (wantsJson(request)) return json({ ok: true, submissionId }, 201);
-  return Response.redirect(new URL("/submit?submitted=1", request.url), 303);
+  const target = new URL("/submit", request.url);
+  target.searchParams.set("submitted", "1");
+  if (campaignSource === "shipaton") target.searchParams.set("campaign", "shipaton");
+  return Response.redirect(target, 303);
 }
 
-function failure(request: Request, message: string, status: number) {
+function failure(request: Request, message: string, status: number, campaignSource: string | null) {
   if (wantsJson(request)) return json({ error: message }, status);
   const target = new URL("/submit", request.url);
   target.searchParams.set("submission", "error");
+  if (campaignSource === "shipaton") target.searchParams.set("campaign", "shipaton");
   return Response.redirect(target, 303);
 }
 

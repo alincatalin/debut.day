@@ -1,0 +1,25 @@
+---
+import Layout from "../layouts/Layout.astro";
+Astro.response.status = 404;
+---
+
+<Layout
+  title="Page not found — Debut Day"
+  description="This Debut Day page could not be found."
+  canonicalPath="/404"
+>
+  <section class="not-found">
+    <div class="wrap">
+      <div class="mono">404 · Not found</div>
+      <h1>This day isn't on the calendar.</h1>
+      <p>The app may not have debuted yet, or the link may have changed.</p>
+      <a class="btn btn-red" href="/">See today's debut</a>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .not-found { min-height: 65vh; display: grid; place-items: center; padding: 80px 0; text-align: center; }
+  h1 { margin: 12px 0; font-family: var(--display); font-size: clamp(38px, 7vw, 62px); line-height: 1.04; letter-spacing: -.045em; }
+  p { margin: 0 auto 26px; color: var(--ink-soft); }
+</style>

@@ -1,0 +1,97 @@
+---
+import type { DebutApp } from "../data/apps";
+import { getShareCardCopy } from "../lib/share-card";
+
+interface Props {
+  app: DebutApp;
+}
+
+const { app } = Astro.props;
+const copy = getShareCardCopy(app);
+const imageVersion = `${app.updatedAt || app.debutDate}-${copy.phase}`;
+const imagePath = `/api/cards/${encodeURIComponent(app.slug)}.png?v=${encodeURIComponent(imageVersion)}`;
+const shareText = copy.headline;
+---
+
+<section class="share-section" aria-labelledby="share-title">
+  <div class="wrap share-shell">
+    <div class="share-copy">
+      <div class="mono">Share your day</div>
+      <h2 id="share-title">You made the app.<br />Now make the moment yours.</h2>
+      <p>Your Debut Day card is ready for your Shipaton and build-in-public updates.</p>
+      <div class="share-actions">
+        <a class="btn btn-red" href={`${imagePath}&download=1`}>Download card</a>
+        <button
+          class="btn btn-ghost"
+          type="button"
+          id="shareDebut"
+          data-url={`https://debut.day/${app.slug}`}
+          data-title={`${app.name} on Debut Day`}
+          data-text={shareText}
+        >Share your debut</button>
+      </div>
+      <p class="share-status" id="shareStatus" role="status" aria-live="polite"></p>
+    </div>
+    <a class="card-preview" href={imagePath} target="_blank" rel="noreferrer" aria-label="Open full-size share card">
+      <img src={imagePath} width="1200" height="630" alt={`${app.name} Debut Day share card`} loading="lazy" />
+    </a>
+  </div>
+</section>
+
+<script>
+  const button = document.getElementById("shareDebut") as HTMLButtonElement | null;
+  const status = document.getElementById("shareStatus") as HTMLParagraphElement | null;
+
+  button?.addEventListener("click", async () => {
+    const url = button.dataset.url || window.location.href;
+    const title = button.dataset.title || document.title;
+    const text = button.dataset.text || title;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        if (status) status.textContent = "Shared.";
+      } else {
+        await navigator.clipboard.writeText(url);
+        if (status) status.textContent = "Link copied.";
+      }
+    } catch (error) {
+      if ((error as DOMException).name !== "AbortError" && status) {
+        status.textContent = "Couldn't share automatically. Copy the page URL instead.";
+      }
+    }
+  });
+</script>
+
+<style>
+  .share-section { padding: 28px 0 68px; }
+  .share-shell {
+    display: grid;
+    grid-template-columns: .78fr 1.22fr;
+    align-items: center;
+    gap: 44px;
+    padding: 38px;
+    border-radius: 26px;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .share-copy h2 {
+    margin: 10px 0 14px;
+    font-family: var(--display);
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.08;
+    letter-spacing: -.035em;
+  }
+  .share-copy > p { margin: 0 0 24px; color: rgba(251, 250, 246, .68); font-size: 15px; }
+  .share-copy .mono { color: #ff8a7f; }
+  .share-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .share-actions .btn-ghost { color: var(--paper); border-color: rgba(251, 250, 246, .3); }
+  .share-actions .btn-ghost:hover { border-color: var(--paper); }
+  .share-status { min-height: 24px; margin: 8px 0 0 !important; font-size: 13px !important; }
+  .card-preview { display: block; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 48px rgba(0, 0, 0, .28); }
+  .card-preview img { display: block; width: 100%; height: auto; }
+
+  @media (max-width: 820px) {
+    .share-shell { grid-template-columns: 1fr; padding: 28px; gap: 26px; }
+  }
+</style>

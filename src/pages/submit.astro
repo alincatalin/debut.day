@@ -1,20 +1,25 @@
 ---
 import Layout from "../layouts/Layout.astro";
+
+const isShipaton = Astro.url.searchParams.get("campaign") === "shipaton";
 ---
 
 <Layout
-  title="Claim your debut day — Debut Day"
+  title={`${isShipaton ? "Submit your Shipaton app" : "Submit for a Debut Day"} — Debut Day`}
   description="Submit your app for a debut day: the whole page, for a full day, then a permanent home in the archive."
 >
   <section class="submit-hero">
     <div class="wrap">
-      <div class="mono">For makers</div>
-      <h1>Claim your debut day.</h1>
+      <div class="mono">{isShipaton ? "Shipaton 2026" : "For makers"}</div>
+      <h1>{isShipaton ? "Submit your Shipaton app." : "Submit for a Debut Day."}</h1>
       <p>
-        Free to submit. First public releases only, iPhone or Android.
+        {isShipaton
+          ? "Shipping a brand-new mobile app for Shipaton? Submit it for a chance to own one entire day."
+          : "Free to submit. First public releases only, iPhone or Android."}
         We read every submission — you'll hear back either way, usually
         within a week.
       </p>
+      {isShipaton && <p class="campaign-note">Not affiliated with RevenueCat or Shipaton. Just made for people shipping.</p>}
     </div>
   </section>
 
@@ -27,6 +32,7 @@ import Layout from "../layouts/Layout.astro";
         action="/api/submit"
         enctype="multipart/form-data"
       >
+        {isShipaton && <input type="hidden" name="campaignSource" value="shipaton" />}
         <label class="honeypot" aria-hidden="true">
           <span>Company website</span>
           <input type="text" name="companyWebsite" tabindex="-1" autocomplete="off" />
@@ -161,6 +167,7 @@ import Layout from "../layouts/Layout.astro";
     margin: 12px 0 14px;
   }
   .submit-hero p { color: var(--ink-soft); font-size: 17px; margin: 0; }
+  .submit-hero .campaign-note { color: var(--muted); font-size: 13px; margin-top: 12px; }
 
   .submit-form-section { padding: 24px 0 100px; }
 

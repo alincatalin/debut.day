@@ -5,10 +5,12 @@ interface Props {
   title: string;
   description: string;
   canonicalPath?: string;
+  imagePath?: string;
 }
 
-const { title, description, canonicalPath = "/" } = Astro.props;
+const { title, description, canonicalPath = "/", imagePath } = Astro.props;
 const canonical = new URL(canonicalPath, "https://debut.day/");
+const socialImage = imagePath ? new URL(imagePath, "https://debut.day/") : null;
 ---
 
 <!doctype html>
@@ -26,6 +28,14 @@ const canonical = new URL(canonicalPath, "https://debut.day/");
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
+    {socialImage && <meta property="og:image" content={socialImage} />}
+    {socialImage && <meta property="og:image:width" content="1200" />}
+    {socialImage && <meta property="og:image:height" content="630" />}
+    {socialImage && <meta property="og:image:alt" content={title} />}
+    <meta name="twitter:card" content={socialImage ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {socialImage && <meta name="twitter:image" content={socialImage} />}
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -42,7 +52,7 @@ const canonical = new URL(canonicalPath, "https://debut.day/");
           <a href="/#today">Today</a>
           <a href="/#how">How we pick</a>
           <a href="/#archive">Archive</a>
-          <a class="nav-cta" href="/submit">Claim your day</a>
+          <a class="nav-cta" href="/submit">Submit your app</a>
         </div>
       </nav>
     </header>
@@ -54,7 +64,7 @@ const canonical = new URL(canonicalPath, "https://debut.day/");
     <footer>
       <div class="wrap footer-row">
         <span>© 2026 Debut Day · debut.day</span>
-        <span><a href="/submit">Claim your day</a> · <a href="/#newsletter">Newsletter</a></span>
+        <span><a href="/submit">Submit your app</a> · <a href="/#newsletter">Newsletter</a></span>
       </div>
     </footer>
 

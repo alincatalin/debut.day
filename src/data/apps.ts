@@ -1,5 +1,6 @@
 export interface AppScreen {
-  icon: string;
+  icon?: string;
+  imageUrl?: string;
   title: string;
   sub: string;
   caption: string;
@@ -17,10 +18,13 @@ export interface DebutApp {
   description: string[];
   whyItsHere: string;
   icon: string;
+  iconUrl?: string;
   platform: "ios" | "android" | "both";
   storeUrlIos?: string;
   storeUrlAndroid?: string;
   debutDate: string;       // ISO date
+  campaignSource?: "shipaton";
+  updatedAt?: string;
   screens: AppScreen[];
   maker?: {
     name: string;
