@@ -40,55 +40,69 @@ const PUBLIC_STATUSES = "('scheduled', 'published', 'archived')";
 
 export async function getTodayApp(): Promise<DebutApp | null> {
   const today = new Date().toISOString().slice(0, 10);
-  const row = await env.DB.prepare(
-    `SELECT p.id, p.slug, p.status, p.name, p.tagline, p.description_json,
-            p.why_its_here, p.platform, p.store_url_ios, p.store_url_android,
-            p.debut_date, p.maker_name, p.maker_role, p.interview_json,
-            p.updated_at, s.campaign_source
-       FROM published_apps p
-       LEFT JOIN app_submissions s ON s.id = p.source_submission_id
-      WHERE p.debut_date = ? AND p.status IN ${PUBLIC_STATUSES}
-      ORDER BY CASE p.status WHEN 'published' THEN 0 WHEN 'scheduled' THEN 1 ELSE 2 END
-      LIMIT 1`,
-  ).bind(today).first<PublishedAppRow>();
+  try {
+    const row = await env.DB.prepare(
+      `SELECT p.id, p.slug, p.status, p.name, p.tagline, p.description_json,
+              p.why_its_here, p.platform, p.store_url_ios, p.store_url_android,
+              p.debut_date, p.maker_name, p.maker_role, p.interview_json,
+              p.updated_at, s.campaign_source
+         FROM published_apps p
+         LEFT JOIN app_submissions s ON s.id = p.source_submission_id
+        WHERE p.debut_date = ? AND p.status IN ${PUBLIC_STATUSES}
+        ORDER BY CASE p.status WHEN 'published' THEN 0 WHEN 'scheduled' THEN 1 ELSE 2 END
+        LIMIT 1`,
+    ).bind(today).first<PublishedAppRow>();
 
-  if (row) return hydrateApp(row);
-  return import.meta.env.DEV ? aster : null;
+    if (row) return hydrateApp(row);
+  } catch (error) {
+    console.error("Today's published app lookup failed; using mock fallback.", error);
+  }
+
+  return aster;
 }
 
 export async function getAppBySlug(slug: string): Promise<DebutApp | null> {
-  const row = await env.DB.prepare(
-    `SELECT p.id, p.slug, p.status, p.name, p.tagline, p.description_json,
-            p.why_its_here, p.platform, p.store_url_ios, p.store_url_android,
-            p.debut_date, p.maker_name, p.maker_role, p.interview_json,
-            p.updated_at, s.campaign_source
-       FROM published_apps p
-       LEFT JOIN app_submissions s ON s.id = p.source_submission_id
-      WHERE p.slug = ? AND p.debut_date IS NOT NULL AND p.status IN ${PUBLIC_STATUSES}
-      LIMIT 1`,
-  ).bind(slug).first<PublishedAppRow>();
+  try {
+    const row = await env.DB.prepare(
+      `SELECT p.id, p.slug, p.status, p.name, p.tagline, p.description_json,
+              p.why_its_here, p.platform, p.store_url_ios, p.store_url_android,
+              p.debut_date, p.maker_name, p.maker_role, p.interview_json,
+              p.updated_at, s.campaign_source
+         FROM published_apps p
+         LEFT JOIN app_submissions s ON s.id = p.source_submission_id
+        WHERE p.slug = ? AND p.debut_date IS NOT NULL AND p.status IN ${PUBLIC_STATUSES}
+        LIMIT 1`,
+    ).bind(slug).first<PublishedAppRow>();
 
-  if (row) return hydrateApp(row);
-  return import.meta.env.DEV && slug === aster.slug ? aster : null;
+    if (row) return hydrateApp(row);
+  } catch (error) {
+    console.error(`Published app lookup failed for ${slug}; using mock fallback when available.`, error);
+  }
+
+  return slug === aster.slug ? aster : null;
 }
 
 export async function listArchive(): Promise<ArchiveEntry[]> {
   const today = new Date().toISOString().slice(0, 10);
-  const result = await env.DB.prepare(
-    `SELECT debut_date AS date, slug, name, platform
-       FROM published_apps
-      WHERE debut_date <= ? AND status IN ${PUBLIC_STATUSES}
-      ORDER BY debut_date DESC`,
-  ).bind(today).all<{ date: string; slug: string; name: string; platform: DebutApp["platform"] }>();
+  try {
+    const result = await env.DB.prepare(
+      `SELECT debut_date AS date, slug, name, platform
+         FROM published_apps
+        WHERE debut_date <= ? AND status IN ${PUBLIC_STATUSES}
+        ORDER BY debut_date DESC`,
+    ).bind(today).all<{ date: string; slug: string; name: string; platform: DebutApp["platform"] }>();
 
-  if (result.results.length > 0) {
-    return result.results.map((row) => ({
-      ...row,
-      platform: platformLabel(row.platform),
-    }));
+    if (result.results.length > 0) {
+      return result.results.map((row) => ({
+        ...row,
+        platform: platformLabel(row.platform),
+      }));
+    }
+  } catch (error) {
+    console.error("Published archive lookup failed; using mock fallback.", error);
   }
 
-  return import.meta.env.DEV ? archiveMock.slice().reverse() : [];
+  return archiveMock.slice().reverse();
 }
 
 async function hydrateApp(row: PublishedAppRow): Promise<DebutApp> {
