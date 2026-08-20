@@ -22,13 +22,35 @@ const sharePhase = getShareCardCopy(app).phase;
 const socialImage = app.campaignSource === "shipaton"
   ? `/api/cards/${app.slug}.png?v=${encodeURIComponent(`${app.updatedAt || app.debutDate}-${sharePhase}`)}`
   : undefined;
+const platformLabel = app.platform === "both"
+  ? "iOS and Android"
+  : app.platform === "ios" ? "iOS" : "Android";
+const appUrl = new URL(`/${app.slug}`, "https://debut.day/").toString();
+const appStructuredData = {
+  "@type": "SoftwareApplication",
+  "@id": `${appUrl}#app`,
+  name: app.name,
+  description: app.tagline,
+  url: appUrl,
+  applicationCategory: "MobileApplication",
+  operatingSystem: platformLabel,
+  datePublished: app.debutDate,
+  ...(app.iconUrl ? { image: new URL(app.iconUrl, appUrl).toString() } : {}),
+  downloadUrl: [app.storeUrlIos, app.storeUrlAndroid].filter((url) => url?.startsWith("http")),
+};
 ---
 
 <Layout
-  title={`${app.name} — Debut Day, ${dateLabel}`}
-  description={`${app.name}'s debut day on Debut Day: ${app.tagline} First public release, ${dateLabel}.`}
+  title={`${app.name} Mobile App — ${dateLabel} Debut | Debut Day`}
+  description={`Discover ${app.name}, a featured ${platformLabel} app: ${app.tagline} See screenshots, its maker story and download links from its ${dateLabel} debut.`}
   canonicalPath={`/${app.slug}`}
   imagePath={socialImage}
+  imageAlt={socialImage
+    ? `${app.name} Debut Day share card: ${app.tagline}`
+    : `Debut Day calendar card introducing ${app.name}, a featured mobile app.`}
+  ogType="article"
+  publishedTime={app.debutDate}
+  structuredData={appStructuredData}
 >
   <section class="app-header">
     <div class="wrap">
@@ -47,7 +69,7 @@ const socialImage = app.campaignSource === "shipaton"
 
       <div class="app-identity">
         {app.iconUrl
-          ? <img class="app-icon-lg" src={app.iconUrl} alt="" width="76" height="76" />
+          ? <img class="app-icon-lg" src={app.iconUrl} alt={`${app.name} mobile app icon`} width="76" height="76" />
           : <div class="app-icon-lg" aria-hidden="true" set:html={app.icon} />}
         <div>
           <h1 class="app-name">{app.name}</h1>
@@ -69,7 +91,7 @@ const socialImage = app.campaignSource === "shipaton"
   {app.screens.length > 0 && (
     <section class="carousel-block">
       <div class="wrap">
-        <ScreenCarousel screens={app.screens} size="lg" showCaption />
+        <ScreenCarousel screens={app.screens} appName={app.name} size="lg" showCaption />
       </div>
     </section>
   )}

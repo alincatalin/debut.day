@@ -5,8 +5,12 @@ const isShipaton = Astro.url.searchParams.get("campaign") === "shipaton";
 ---
 
 <Layout
-  title={`${isShipaton ? "Submit your Shipaton app" : "Submit for a Debut Day"} — Debut Day`}
-  description="Submit your app for a debut day: the whole page, for a full day, then a permanent home in the archive."
+  title={`${isShipaton ? "Submit Your Shipaton App" : "Submit Your Mobile App"} — Debut Day`}
+  description={isShipaton
+    ? "Submit your first-release Shipaton mobile app for a chance to own a full Debut Day and a permanent page in the archive."
+    : "Submit your first-release iPhone or Android app for a full Debut Day feature and a permanent page in the mobile app archive."}
+  canonicalPath="/submit"
+  imageAlt="Debut Day calendar card inviting makers to submit a new mobile app."
 >
   <section class="submit-hero">
     <div class="wrap">

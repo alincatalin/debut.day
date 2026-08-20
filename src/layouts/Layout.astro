@@ -6,11 +6,65 @@ interface Props {
   description: string;
   canonicalPath?: string;
   imagePath?: string;
+  imageAlt?: string;
+  robots?: string;
+  ogType?: "website" | "article";
+  publishedTime?: string;
+  structuredData?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-const { title, description, canonicalPath = "/", imagePath } = Astro.props;
+const {
+  title,
+  description,
+  canonicalPath = "/",
+  imagePath,
+  imageAlt = "Debut Day — every new app gets its debut day.",
+  robots = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+  ogType = "website",
+  publishedTime,
+  structuredData,
+} = Astro.props;
 const canonical = new URL(canonicalPath, "https://debut.day/");
-const socialImage = imagePath ? new URL(imagePath, "https://debut.day/") : null;
+const openGraphImage = new URL(imagePath || "/social/debut-day-og-facebook-1200x630.png", canonical);
+const linkedInImage = imagePath ? null : new URL("/social/debut-day-og-linkedin-1200x627.png", canonical);
+const squareImage = imagePath ? null : new URL("/social/debut-day-og-square-1200x1200.png", canonical);
+const twitterImage = new URL(imagePath || "/social/debut-day-og-twitter-1200x600.png", canonical);
+const extraStructuredData = structuredData
+  ? Array.isArray(structuredData) ? structuredData : [structuredData]
+  : [];
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://debut.day/#website",
+      url: "https://debut.day/",
+      name: "Debut Day",
+      description: "Discover one carefully chosen, first-release mobile app every day.",
+      inLanguage: "en",
+    },
+    {
+      "@type": "WebPage",
+      "@id": `${canonical}#webpage`,
+      url: canonical.toString(),
+      name: title,
+      description,
+      isPartOf: { "@id": "https://debut.day/#website" },
+      primaryImageOfPage: { "@id": `${openGraphImage}#primaryimage` },
+      inLanguage: "en",
+    },
+    {
+      "@type": "ImageObject",
+      "@id": `${openGraphImage}#primaryimage`,
+      url: openGraphImage.toString(),
+      contentUrl: openGraphImage.toString(),
+      width: 1200,
+      height: 630,
+      caption: imageAlt,
+    },
+    ...extraStructuredData,
+  ],
+};
 ---
 
 <!doctype html>
@@ -22,20 +76,41 @@ const socialImage = imagePath ? new URL(imagePath, "https://debut.day/") : null;
 
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
 
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonical} />
-    {socialImage && <meta property="og:image" content={socialImage} />}
-    {socialImage && <meta property="og:image:width" content="1200" />}
-    {socialImage && <meta property="og:image:height" content="630" />}
-    {socialImage && <meta property="og:image:alt" content={title} />}
-    <meta name="twitter:card" content={socialImage ? "summary_large_image" : "summary"} />
+    <meta property="og:site_name" content="Debut Day" />
+    <meta property="og:locale" content="en_US" />
+    {ogType === "article" && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    <meta property="og:image" content={openGraphImage} />
+    <meta property="og:image:secure_url" content={openGraphImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
+    {linkedInImage && <meta property="og:image" content={linkedInImage} />}
+    {linkedInImage && <meta property="og:image:secure_url" content={linkedInImage} />}
+    {linkedInImage && <meta property="og:image:type" content="image/png" />}
+    {linkedInImage && <meta property="og:image:width" content="1200" />}
+    {linkedInImage && <meta property="og:image:height" content="627" />}
+    {linkedInImage && <meta property="og:image:alt" content={imageAlt} />}
+    {squareImage && <meta property="og:image" content={squareImage} />}
+    {squareImage && <meta property="og:image:secure_url" content={squareImage} />}
+    {squareImage && <meta property="og:image:type" content="image/png" />}
+    {squareImage && <meta property="og:image:width" content="1200" />}
+    {squareImage && <meta property="og:image:height" content="1200" />}
+    {squareImage && <meta property="og:image:alt" content={imageAlt} />}
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    {socialImage && <meta name="twitter:image" content={socialImage} />}
+    <meta name="twitter:image" content={twitterImage} />
+    <meta name="twitter:image:alt" content={imageAlt} />
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

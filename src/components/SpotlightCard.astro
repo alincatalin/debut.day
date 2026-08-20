@@ -17,7 +17,7 @@ const initialStoreUrl = initialPlatform === "android" ? app.storeUrlAndroid : ap
   <DateSticker date={debutDate} />
   <article class="spotlight-shell">
     <div class="visual-col">
-      <ScreenCarousel screens={app.screens} size="md" />
+      <ScreenCarousel screens={app.screens} appName={app.name} size="md" />
     </div>
 
     <div class="details-pane">
@@ -29,7 +29,7 @@ const initialStoreUrl = initialPlatform === "android" ? app.storeUrlAndroid : ap
       <div class="app-row">
         <div class="app-heading">
           {app.iconUrl
-            ? <img class="app-icon" src={app.iconUrl} alt="" width="52" height="52" />
+            ? <img class="app-icon" src={app.iconUrl} alt={`${app.name} mobile app icon`} width="52" height="52" />
             : <div class="app-icon" aria-hidden="true" set:html={app.icon} />}
           <h2 class="app-title">{app.name}</h2>
         </div>

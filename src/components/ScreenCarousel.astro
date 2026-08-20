@@ -3,11 +3,12 @@ import type { AppScreen } from "../data/apps";
 
 interface Props {
   screens: AppScreen[];
+  appName: string;
   size?: "md" | "lg";
   showCaption?: boolean;
 }
 
-const { screens, size = "md", showCaption = false } = Astro.props;
+const { screens, appName, size = "md", showCaption = false } = Astro.props;
 const uid = Math.random().toString(36).slice(2, 9);
 ---
 
@@ -18,7 +19,12 @@ const uid = Math.random().toString(36).slice(2, 9);
       {screens.map((s, i) => (
         <div class="phone-slide" class:list={{ active: i === 0 }} data-slide={i}>
           {s.imageUrl ? (
-            <img class="screen-image" src={s.imageUrl} alt={`${s.title} app screen`} loading={i === 0 ? "eager" : "lazy"} />
+            <img
+              class="screen-image"
+              src={s.imageUrl}
+              alt={`${appName} mobile app screenshot showing ${s.title}`}
+              loading={i === 0 ? "eager" : "lazy"}
+            />
           ) : (
             <>
               <div class="screen-icon" set:html={s.icon} />
