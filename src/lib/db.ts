@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { aster, archiveMock, type DebutApp, type QA } from "../data/apps";
+import { archiveMock, smol, type DebutApp, type QA } from "../data/apps";
 
 type PublicStatus = "scheduled" | "published" | "archived";
 
@@ -58,7 +58,7 @@ export async function getTodayApp(): Promise<DebutApp | null> {
     console.error("Today's published app lookup failed; using mock fallback.", error);
   }
 
-  return aster;
+  return smol;
 }
 
 export async function getAppBySlug(slug: string): Promise<DebutApp | null> {
@@ -79,7 +79,7 @@ export async function getAppBySlug(slug: string): Promise<DebutApp | null> {
     console.error(`Published app lookup failed for ${slug}; using mock fallback when available.`, error);
   }
 
-  return slug === aster.slug ? aster : null;
+  return slug === smol.slug ? smol : null;
 }
 
 export async function listArchive(): Promise<ArchiveEntry[]> {

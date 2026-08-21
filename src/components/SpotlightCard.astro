@@ -45,9 +45,11 @@ const initialStoreUrl = initialPlatform === "android" ? app.storeUrlAndroid : ap
 
       <p class="app-copy">{app.tagline}</p>
 
-      <div class="why">
-        <strong>Why it's here:</strong> {app.whyItsHere}
-      </div>
+      {app.whyItsHere && (
+        <div class="why">
+          <strong>Why it's here:</strong> {app.whyItsHere}
+        </div>
+      )}
 
       <div class="cta-row">
         <a class="btn btn-red" id="storeButton" href={initialStoreUrl ?? "#"}>

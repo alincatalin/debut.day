@@ -38,11 +38,14 @@ const appStructuredData = {
   ...(app.iconUrl ? { image: new URL(app.iconUrl, appUrl).toString() } : {}),
   downloadUrl: [app.storeUrlIos, app.storeUrlAndroid].filter((url) => url?.startsWith("http")),
 };
+const pageDescription = app.maker
+  ? `Discover ${app.name}, a featured ${platformLabel} app: ${app.tagline} See screenshots, its maker story and download links from its ${dateLabel} debut.`
+  : `Discover ${app.name}, a featured ${platformLabel} app: ${app.tagline} See screenshots and download links from its ${dateLabel} debut.`;
 ---
 
 <Layout
   title={`${app.name} Mobile App — ${dateLabel} Debut | Debut Day`}
-  description={`Discover ${app.name}, a featured ${platformLabel} app: ${app.tagline} See screenshots, its maker story and download links from its ${dateLabel} debut.`}
+  description={pageDescription}
   canonicalPath={`/${app.slug}`}
   imagePath={socialImage}
   imageAlt={socialImage
@@ -103,9 +106,11 @@ const appStructuredData = {
       <h2>About {app.name}</h2>
       {app.description.map((para) => <p>{para}</p>)}
 
-      <div class="why">
-        <strong>Why it's here:</strong> {app.whyItsHere}
-      </div>
+      {app.whyItsHere && (
+        <div class="why">
+          <strong>Why it's here:</strong> {app.whyItsHere}
+        </div>
+      )}
     </div>
   </section>
 
