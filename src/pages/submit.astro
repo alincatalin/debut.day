@@ -1,7 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { env } from "cloudflare:workers";
 
 const isShipaton = Astro.url.searchParams.get("campaign") === "shipaton";
+const isLocalRequest = ["localhost", "127.0.0.1", "[::1]"].includes(Astro.url.hostname);
+const turnstileSiteKey = isLocalRequest
+  ? "1x00000000000000000000AA"
+  : env.TURNSTILE_SITE_KEY;
 ---
 
 <Layout
@@ -111,11 +116,24 @@ const isShipaton = Astro.url.searchParams.get("campaign") === "shipaton";
           </label>
         </fieldset>
 
+        <div class="security-check">
+          <div
+            class="cf-turnstile"
+            data-sitekey={turnstileSiteKey}
+            data-action="app-submit"
+            data-theme="light"
+            data-size="flexible"
+          ></div>
+          <noscript>JavaScript is required to submit an app.</noscript>
+        </div>
+
         <button class="btn btn-red submit-btn" type="submit">Submit for review</button>
         <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
       </form>
     </div>
   </section>
+
+  <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </Layout>
 
 <script>
@@ -132,16 +150,25 @@ const isShipaton = Astro.url.searchParams.get("campaign") === "shipaton";
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const formData = new FormData(form);
+    const turnstileToken = String(formData.get("cf-turnstile-response") || "");
+    if (!turnstileToken) {
+      status.textContent = "Complete the security check before submitting.";
+      return;
+    }
+
+    formData.delete("cf-turnstile-response");
     status.textContent = "Sending…";
     if (button) button.disabled = true;
-
-    const formData = new FormData(form);
 
     try {
       const res = await fetch("/api/submit", {
         method: "POST",
         body: formData,
-        headers: { accept: "application/json" },
+        headers: {
+          accept: "application/json",
+          "x-turnstile-token": turnstileToken,
+        },
       });
       const data = res.headers.get("content-type")?.includes("application/json")
         ? await res.json()
@@ -156,6 +183,10 @@ const isShipaton = Astro.url.searchParams.get("campaign") === "shipaton";
     } catch {
       status.textContent = "Network error — please try again.";
     } finally {
+      const turnstile = (window as Window & {
+        turnstile?: { reset: (widget?: string | HTMLElement) => void };
+      }).turnstile;
+      turnstile?.reset();
       if (button) button.disabled = false;
     }
   });
@@ -245,6 +276,9 @@ const isShipaton = Astro.url.searchParams.get("campaign") === "shipaton";
     margin-left: 6px;
   }
   .fieldset-note { margin: -4px 0 4px; font-size: 13.5px; color: var(--muted); font-weight: 400; }
+
+  .security-check { min-height: 65px; }
+  .security-check noscript { color: var(--red); font-size: 14px; }
 
   .submit-btn { align-self: flex-start; margin-top: 6px; }
   .submit-btn:disabled { cursor: wait; opacity: .65; }

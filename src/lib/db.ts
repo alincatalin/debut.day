@@ -9,6 +9,7 @@ interface PublishedAppRow {
   status: PublicStatus;
   name: string;
   tagline: string;
+  homepage_summary: string | null;
   description_json: string;
   why_its_here: string;
   platform: "ios" | "android" | "both";
@@ -42,7 +43,8 @@ export async function getTodayApp(): Promise<DebutApp | null> {
   const today = new Date().toISOString().slice(0, 10);
   try {
     const row = await env.DB.prepare(
-      `SELECT p.id, p.slug, p.status, p.name, p.tagline, p.description_json,
+      `SELECT p.id, p.slug, p.status, p.name, p.tagline, p.homepage_summary,
+              p.description_json,
               p.why_its_here, p.platform, p.store_url_ios, p.store_url_android,
               p.debut_date, p.maker_name, p.maker_role, p.interview_json,
               p.updated_at, s.campaign_source
@@ -64,7 +66,8 @@ export async function getTodayApp(): Promise<DebutApp | null> {
 export async function getAppBySlug(slug: string): Promise<DebutApp | null> {
   try {
     const row = await env.DB.prepare(
-      `SELECT p.id, p.slug, p.status, p.name, p.tagline, p.description_json,
+      `SELECT p.id, p.slug, p.status, p.name, p.tagline, p.homepage_summary,
+              p.description_json,
               p.why_its_here, p.platform, p.store_url_ios, p.store_url_android,
               p.debut_date, p.maker_name, p.maker_role, p.interview_json,
               p.updated_at, s.campaign_source
@@ -125,6 +128,7 @@ async function hydrateApp(row: PublishedAppRow): Promise<DebutApp> {
     slug: row.slug,
     name: row.name,
     tagline: row.tagline,
+    homepageSummary: row.homepage_summary || undefined,
     description: parseJsonArray<string>(row.description_json),
     whyItsHere: row.why_its_here,
     icon: row.name.charAt(0),

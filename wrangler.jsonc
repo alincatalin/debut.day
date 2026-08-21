@@ -2,6 +2,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "debut-day",
   "compatibility_date": "2026-08-20",
+  "vars": {
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAEWw0Ke71Mdbqtll"
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -14,6 +17,16 @@
     {
       "binding": "SUBMISSION_ASSETS",
       "bucket_name": "debut-day-submissions"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "SUBMISSION_RATE_LIMITER",
+      "namespace_id": "26082026",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
     }
   ],
   "observability": {

@@ -7,6 +7,11 @@ const MAX_REQUEST_BYTES = 24 * 1024 * 1024;
 const MAX_ICON_BYTES = 2 * 1024 * 1024;
 const MAX_SCREENSHOT_BYTES = 4 * 1024 * 1024;
 const MAX_SCREENSHOTS = 5;
+const MAX_TURNSTILE_TOKEN_LENGTH = 2048;
+const TURNSTILE_ACTION = "app-submit";
+const TURNSTILE_TEST_SECRET = "1x0000000000000000000000000000000AA";
+const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const ALLOWED_TURNSTILE_HOSTNAMES = new Set(["debut.day", "www.debut.day"]);
 
 const FIELD_LIMITS = {
   name: 60,
@@ -26,6 +31,12 @@ interface PreparedImage {
   size: number;
 }
 
+interface TurnstileVerification {
+  success: boolean;
+  hostname?: string;
+  action?: string;
+}
+
 class FormError extends Error {
   constructor(message: string, readonly status = 400) {
     super(message);
@@ -37,12 +48,16 @@ export const POST: APIRoute = async ({ request }) => {
   let campaignSource: "shipaton" | null = null;
 
   try {
+    await enforceRateLimit(request);
+
     const declaredLength = Number(request.headers.get("content-length") || 0);
     if (declaredLength > MAX_REQUEST_BYTES) {
       throw new FormError("The submission is too large. Please use smaller images.", 413);
     }
 
-    const formData = await request.formData();
+    await verifyTurnstile(request);
+
+    const formData = await readBoundedFormData(request);
     const honeypot = text(formData, "companyWebsite");
     campaignSource = text(formData, "campaignSource") === "shipaton" ? "shipaton" : null;
 
@@ -188,6 +203,106 @@ export const POST: APIRoute = async ({ request }) => {
     return failure(request, "We couldn't save your submission. Please try again.", 500, campaignSource);
   }
 };
+
+async function enforceRateLimit(request: Request) {
+  const clientIp = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
+  const { success: allowed } = await env.SUBMISSION_RATE_LIMITER.limit({
+    key: `submission:${clientIp}`,
+  });
+
+  if (!allowed) {
+    throw new FormError("Too many submission attempts. Please wait a minute and try again.", 429);
+  }
+}
+
+async function verifyTurnstile(request: Request) {
+  const token = request.headers.get("x-turnstile-token")?.trim() || "";
+  if (!token || token.length > MAX_TURNSTILE_TOKEN_LENGTH) {
+    throw new FormError("Complete the security check and try again.", 403);
+  }
+
+  const isLocalRequest = isLocalHostname(new URL(request.url).hostname);
+  const secret = isLocalRequest ? TURNSTILE_TEST_SECRET : env.TURNSTILE_SECRET_KEY;
+  if (!secret) {
+    console.error("TURNSTILE_SECRET_KEY is not configured.");
+    throw new FormError("The security check is unavailable. Please try again shortly.", 503);
+  }
+
+  const body = new URLSearchParams({
+    secret,
+    response: token,
+    idempotency_key: crypto.randomUUID(),
+  });
+  const clientIp = request.headers.get("cf-connecting-ip")?.trim();
+  if (clientIp) body.set("remoteip", clientIp);
+
+  let verification: TurnstileVerification;
+  try {
+    const response = await fetch(TURNSTILE_VERIFY_URL, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body,
+    });
+    if (!response.ok) throw new Error(`Turnstile returned ${response.status}.`);
+    verification = await response.json<TurnstileVerification>();
+  } catch (error) {
+    console.error("Turnstile verification failed:", error);
+    throw new FormError("The security check is unavailable. Please try again shortly.", 503);
+  }
+
+  const validContext =
+    isLocalRequest ||
+    (verification.action === TURNSTILE_ACTION &&
+      Boolean(verification.hostname) &&
+      ALLOWED_TURNSTILE_HOSTNAMES.has(verification.hostname!));
+
+  if (!verification.success || !validContext) {
+    throw new FormError("The security check expired or was rejected. Please try again.", 403);
+  }
+}
+
+function isLocalHostname(hostname: string) {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+}
+
+async function readBoundedFormData(request: Request) {
+  const contentType = request.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().startsWith("multipart/form-data")) {
+    throw new FormError("Submit the form as multipart form data.");
+  }
+  if (!request.body) throw new FormError("The submission form is empty.");
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    totalBytes += value.byteLength;
+    if (totalBytes > MAX_REQUEST_BYTES) {
+      await reader.cancel().catch(() => undefined);
+      throw new FormError("The submission is too large. Please use smaller images.", 413);
+    }
+    chunks.push(value);
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  try {
+    return await new Response(bytes.buffer, {
+      headers: { "content-type": contentType },
+    }).formData();
+  } catch {
+    throw new FormError("We couldn't read the submission form. Please try again.");
+  }
+}
 
 function text(formData: FormData, key: string) {
   return String(formData.get(key) || "").trim();

@@ -18,6 +18,9 @@ npm run dev
 
 The local server runs at `http://localhost:4321`. Astro's Cloudflare adapter
 uses `workerd` in development, so D1 and R2 bindings behave like production.
+The submission form uses Cloudflare's published Turnstile test keys locally.
+Production uses the managed `Debut Day submissions` widget and the encrypted
+`TURNSTILE_SECRET_KEY` Worker secret.
 
 ## Verification and deployment
 
@@ -31,6 +34,22 @@ npm run deploy
 
 Do not commit generated `dist/` output. Run `npm run cf:types` after changing
 bindings in `wrangler.jsonc`.
+
+App submissions are protected before their multipart body is parsed:
+
+- Turnstile tokens are verified server-side and bound to the `app-submit`
+  action and production hostnames.
+- One Worker rate-limit binding allows five submission attempts per IP each
+  minute.
+- The request stream stops at 24 MB even when `Content-Length` is absent or
+  false. Existing per-file type, signature, count, and size checks still apply.
+
+The Turnstile secret was installed with Wrangler and is not stored in the
+repository. If the Worker is recreated, install it again before deployment:
+
+```bash
+npx wrangler secret put TURNSTILE_SECRET_KEY
+```
 
 ## Data model
 
