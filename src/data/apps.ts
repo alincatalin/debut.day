@@ -15,6 +15,7 @@ export interface DebutApp {
   slug: string;
   name: string;
   tagline: string;
+  homepageSummary?: string;
   description: string[];
   whyItsHere?: string;
   icon: string;
@@ -40,6 +41,7 @@ export const smol: DebutApp = {
   slug: "smol-pet-health-tracker",
   name: "smol: Pet Health Tracker",
   tagline: "Meds, reminders & daily care",
+  homepageSummary: "smol keeps everyday pet care in one place, from meals, water, activity, and symptoms to medications, vaccines, routines, and reminders. Track what’s done, see what’s next, and review your pet’s history and health trends without turning their life into a spreadsheet.",
   description: [
     "smol helps you keep day-to-day pet care organized without turning your pet's life into a spreadsheet.",
     "Log food, water, potty, activity, weight, symptoms, behaviour, medications, vaccines, parasite care, and hygiene.",
